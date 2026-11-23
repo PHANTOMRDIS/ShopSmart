@@ -1,0 +1,390 @@
+
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Shop</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#f5f7fb;color:#172033}
+header{background:#111c35;color:white;padding:18px 6%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px}
+.logo{font-size:25px;font-weight:bold}.logo span{color:#60a5fa}
+nav a{color:white;text-decoration:none;margin-left:17px;font-size:14px}
+.hero{background:linear-gradient(120deg,#172b52,#2563eb);color:white;padding:50px 7%}
+.hero h1{font-size:34px;margin-bottom:12px}
+.hero p{color:#dbeafe;line-height:1.6}
+.container{max-width:1150px;margin:auto;padding:30px 18px}
+h2{margin-bottom:12px}
+.muted{color:#8490a5;font-size:14px;margin-bottom:20px}
+.categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:12px;margin:20px 0 30px}
+.category{background:white;border:1px solid #e5eaf2;border-radius:12px;padding:17px 7px;text-align:center;cursor:pointer}
+.category:hover,.category.active{background:#2563eb;color:white}
+.category div{font-size:29px;margin-bottom:8px}
+.category p{font-size:13px;font-weight:bold}
+.tools{display:flex;gap:10px;margin:20px 0}
+input,select{padding:13px;border:1px solid #dfe5ef;border-radius:9px;background:white;font-size:14px}
+input{flex:1;min-width:0}
+select{width:190px}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:16px}
+.card{background:white;border:1px solid #e8edf5;border-radius:14px;padding:15px;transition:.2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 20px #00000010}
+.product-image{height:135px;background:#f0f4fc;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:13px}
+.card h3{font-size:16px;margin-bottom:7px}
+.brand{color:#78869c;font-size:12px;margin-bottom:8px}
+.price{font-size:19px;color:#2563eb;font-weight:bold;margin:12px 0}
+.actions{display:flex;gap:7px}
+button{border:0;background:#2563eb;color:white;padding:11px;border-radius:8px;cursor:pointer;font-weight:bold}
+button:hover{background:#1d4ed8}
+.actions button{flex:1;font-size:12px}
+.details-btn{background:#eaf1ff;color:#2563eb}
+.details-btn:hover{background:#dbeafe}
+.cart{background:white;border:1px solid #e8edf5;border-radius:14px;padding:22px;margin-top:35px}
+.cart-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #eee;font-size:14px}
+.remove{background:#ef4444;padding:7px 10px}
+.total{font-size:21px;font-weight:bold;margin-top:18px}
+.order{width:100%;margin-top:18px;padding:14px}
+.overlay{display:none;position:fixed;inset:0;background:#0009;z-index:10;align-items:center;justify-content:center;padding:15px}
+.modal{background:white;border-radius:16px;padding:25px;width:100%;max-width:450px;max-height:85vh;overflow:auto}
+.modal h2{margin-bottom:15px}
+.modal p{line-height:1.6;color:#58657a;margin:10px 0}
+.modal .product-image{height:150px;font-size:75px}
+.modal button{margin-top:12px}
+.close{background:#e9edf5;color:#26344c;width:100%}
+.buy{width:100%}
+.info{background:#f0f5ff;border-radius:10px;padding:13px;margin-top:12px;font-size:14px;line-height:1.6}
+footer{background:#111c35;color:#aab8d0;text-align:center;padding:25px;margin-top:40px}
+@media(max-width:600px){
+header{padding:16px}
+nav a{margin-left:9px;font-size:12px}
+.hero{padding:38px 20px}
+.hero h1{font-size:27px}
+.tools{flex-direction:column}
+select{width:100%}
+}
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo">Smart<span>Shop.</span></div>
+<nav>
+<a href="#">Басты бет</a>
+<a href="#catalog">Каталог</a>
+<a href="#cart">Себет 🛒</a>
+</nav>
+</header>
+
+<section class="hero">
+<h1>Smart Shop дүкеніне қош келдіңіз!</h1>
+<p>Танымал брендтер. Сапалы тауарлар. Тиімді бағалар.<br>
+Өзіңізге қажетті затты оңай табыңыз!</p>
+</section>
+
+<div class="container" id="catalog">
+
+<h2>📂 Категориялар</h2>
+<p class="muted">Қажетті бөлімді таңдап, тауарларды қараңыз.</p>
+<div class="categories" id="categories"></div>
+
+<h2 id="catalogTitle">Барлық тауарлар</h2>
+<p class="muted" id="count"></p>
+
+<div class="tools">
+<input id="search" placeholder="🔍 Тауар атауын іздеу..." oninput="showProducts()">
+<select id="sort" onchange="showProducts()">
+<option value="default">Сұрыптау</option>
+<option value="cheap">Арзаннан қымбатқа</option>
+<option value="expensive">Қымбаттан арзанға</option>
+</select>
+</div>
+
+<div class="products" id="products"></div>
+
+<div class="cart" id="cart">
+<h2>🛒 Менің себетім</h2>
+<div id="cartItems">Себет әзірге бос.</div>
+<div class="total" id="total">Жалпы: 0 ₸</div>
+<button class="order" onclick="order()">Сатып алуды жалғастыру</button>
+</div>
+
+</div>
+
+<!-- Тауар туралы толық ақпарат -->
+<div class="overlay" id="detailOverlay">
+<div class="modal">
+<div id="detailContent"></div>
+<button class="close" onclick="closeModal('detailOverlay')">Жабу</button>
+</div>
+</div>
+
+<!-- Сатып алу -->
+<div class="overlay" id="paymentOverlay">
+<div class="modal">
+<h2>💳 Төлем әдісі</h2>
+<p>Smart Shop дүкеніне қош келдіңіз!</p>
+<div class="info">
+<strong>Төлем картасын тіркеу</strong><br>
+Бұл сайттың оқу мақсатындағы демо-нұсқасы. Нақты банк картасының нөмірін немесе құпия деректерін енгізбеңіз.
+<br><br>
+Нақты төлем жүйесі әзірге қосылмаған.
+</div>
+<button class="buy" onclick="alert('Бұл демонстрациялық жоба. Нақты төлем жүргізілмейді.');closeModal('paymentOverlay')">Түсіндім</button>
+<button class="close" onclick="closeModal('paymentOverlay')">Артқа қайту</button>
+</div>
+</div>
+
+<footer>
+© 2026 Smart Shop<br><br>
+Ақылды таңдау — тиімді сатып алу!
+</footer>
+
+<script>
+const categories=[
+["Барлығы","🛍️"],
+["Киім","👕"],
+["Смартфондар","📱"],
+["Компьютерлер","💻"],
+["Аксессуарлар","🎧"],
+["Аяқ киім","👟"],
+["Үй заттары","🏠"],
+["Ойын құрылғылары","🎮"],
+["Гаджеттер","⌚"]
+];
+
+let products=[];
+let cart=[];
+let selected="Барлығы";
+
+function add(name,brand,price,cat,icon,material,info){
+products.push({name,brand,price,cat,icon,material,info});
+}
+
+// 40 түрлі киім
+const clothes=[
+["Nike футболка","Nike",12500,"мақта","100% мақта"],
+["Adidas футболка","Adidas",14500,"полиэстер","Жеңіл спорттық мата"],
+["Puma футболка","Puma",11000,"мақта","Жұмсақ мақта"],
+["Nike худи","Nike",32000,"мақта","Мақта және полиэстер"],
+["Adidas худи","Adidas",28500,"мақта","Жұмсақ трикотаж"],
+["Puma худи","Puma",26000,"мақта","Мақта қоспасы"],
+["Nike күртеше","Nike",65000,"полиэстер","Су өткізбейтін сыртқы қабат"],
+["Adidas күртеше","Adidas",58000,"полиэстер","Жеңіл синтетикалық мата"],
+["Puma күртеше","Puma",49000,"полиэстер","Жылы астар"],
+["Nike спорт шалбар","Nike",24000,"мақта","Мақта қоспасы"],
+["Adidas спорт шалбар","Adidas",22000,"полиэстер","Спорттық трикотаж"],
+["Puma спорт шалбар","Puma",19000,"мақта","Жұмсақ мата"],
+["Nike джинсы","Nike",35000,"деним","Деним мақта матасы"],
+["Levi's джинсы","Levi's",42000,"деним","Мақта деним"],
+["Adidas шорты","Adidas",16000,"полиэстер","Жеңіл спорттық мата"],
+["Nike шорты","Nike",18000,"полиэстер","Демалуға ыңғайлы"],
+["Puma шорты","Puma",14000,"мақта","Мақта матасы"],
+["Nike кепка","Nike",9000,"мақта","Мақта және торлы материал"],
+["Adidas кепка","Adidas",8500,"мақта","Мақта матасы"],
+["New Era кепка","New Era",15000,"мақта","Мақта"],
+["Nike свитшот","Nike",29000,"мақта","Мақта трикотаж"],
+["Adidas свитшот","Adidas",27000,"мақта","Мақта қоспасы"],
+["Puma свитшот","Puma",23000,"мақта","Жұмсақ мата"],
+["Zara жейде","Zara",18500,"мақта","Мақта"],
+["H&M жейде","H&M",14000,"мақта","Мақта қоспасы"],
+["Nike поло","Nike",19000,"мақта","Мақта пике"],
+["Lacoste поло","Lacoste",39000,"мақта","Мақта пике"],
+["Zara шалбар","Zara",22000,"полиэстер","Полиэстер қоспасы"],
+["H&M шалбар","H&M",17500,"мақта","Мақта матасы"],
+["Nike жилет","Nike",35000,"полиэстер","Жеңіл синтетика"],
+["Adidas жилет","Adidas",32000,"полиэстер","Жылы астар"],
+["Zara пальто","Zara",55000,"жүн қоспасы","Жүн және полиэстер"],
+["H&M свитер","H&M",21000,"жүн қоспасы","Трикотаж"],
+["Nike лонгслив","Nike",17000,"мақта","Мақта"],
+["Adidas лонгслив","Adidas",16000,"мақта","Жеңіл мата"],
+["Puma майка","Puma",8500,"полиэстер","Спорттық мата"],
+["Nike спорт костюм","Nike",52000,"полиэстер","Спорттық трикотаж"],
+["Adidas спорт костюм","Adidas",49000,"полиэстер","Жеңіл мата"],
+["Zara кардиган","Zara",26000,"трикотаж","Трикотаж мата"],
+["H&M худи","H&M",20000,"мақта","Мақта қоспасы"]
+];
+
+clothes.forEach((c,i)=>add(
+c[0],c[1],c[2],"Киім",
+i%3===0?"👕":i%3===1?"🧥":"👖",
+c[3],"Материалы: "+c[4]+". Өлшемдері: S, M, L, XL. Түстері: қара, ақ, сұр."
+));
+
+// Смартфондар
+const phones=[
+["iPhone 16 Pro","Apple",650000,"256 GB","48 MP","A18 Pro","6.3 дюйм"],
+["iPhone 16","Apple",470000,"128 GB","48 MP","A18","6.1 дюйм"],
+["iPhone 15","Apple",370000,"128 GB","48 MP","A16 Bionic","6.1 дюйм"],
+["iPhone 14","Apple",300000,"128 GB","12 MP","A15 Bionic","6.1 дюйм"],
+["Galaxy S25 Ultra","Samsung",620000,"256 GB","200 MP","Snapdragon 8 Elite","6.9 дюйм"],
+["Galaxy S25","Samsung",410000,"128 GB","50 MP","Snapdragon 8 Elite","6.2 дюйм"],
+["Galaxy A56","Samsung",210000,"256 GB","50 MP","Exynos 1580","6.7 дюйм"],
+["Galaxy A36","Samsung",160000,"128 GB","50 MP","Snapdragon 6 Gen 3","6.7 дюйм"],
+["Redmi Note 14 Pro","Xiaomi",165000,"256 GB","200 MP","Helio G100 Ultra","6.67 дюйм"],
+["Xiaomi 15","Xiaomi",390000,"256 GB","50 MP","Snapdragon 8 Elite","6.36 дюйм"],
+["Poco X7 Pro","Poco",190000,"256 GB","50 MP","Dimensity 8400 Ultra","6.67 дюйм"],
+["Redmi 14C","Xiaomi",65000,"128 GB","50 MP","Helio G81 Ultra","6.88 дюйм"]
+];
+
+phones.forEach(p=>add(
+p[0],p[1],p[2],"Смартфондар","📱",
+"Сипаттамалар",
+`Жады: ${p[3]}. Камера: ${p[4]}. Процессор: ${p[5]}. Экран: ${p[6]}.`
+));
+
+// Компьютерлер
+[
+["MacBook Air M3","Apple",550000,"16 GB RAM, 512 GB SSD","💻"],
+["MacBook Pro","Apple",850000,"18 GB RAM, 512 GB SSD","💻"],
+["ASUS VivoBook","ASUS",310000,"16 GB RAM, 512 GB SSD","💻"],
+["Lenovo IdeaPad","Lenovo",270000,"8 GB RAM, 512 GB SSD","💻"],
+["HP Pavilion","HP",330000,"16 GB RAM, 512 GB SSD","💻"],
+["Acer Aspire","Acer",240000,"8 GB RAM, 256 GB SSD","💻"]
+].forEach(p=>add(p[0],p[1],p[2],"Компьютерлер",p[4],"Металл және пластик",p[3]));
+
+[
+["AirPods Pro","Apple",110000,"Аксессуарлар","🎧","Bluetooth, шуды азайту"],
+["Galaxy Buds","Samsung",65000,"Аксессуарлар","🎧","Bluetooth, сымсыз"],
+["Sony Headphones","Sony",85000,"Аксессуарлар","🎧","Шуды азайту"],
+["Logitech Mouse","Logitech",18000,"Аксессуарлар","🖱️","Сымсыз тінтуір"],
+["Mechanical Keyboard","Redragon",25000,"Аксессуарлар","⌨️","Механикалық пернетақта"],
+["Phone Case","Universal",3500,"Аксессуарлар","📱","Қорғаныс қабы"]
+].forEach(p=>add(p[0],p[1],p[2],p[3],p[4],"Пластик және басқа материалдар",p[5]));
+
+[
+["Nike Air Max","Nike",55000,"Аяқ киім","👟","Торлы мата және резеңке табан"],
+["Adidas Ultraboost","Adidas",65000,"Аяқ киім","👟","Тоқылған мата"],
+["Puma RS-X","Puma",48000,"Аяқ киім","👟","Синтетикалық материал"],
+["Nike Jordan","Nike",85000,"Аяқ киім","👟","Былғары және синтетика"],
+["Adidas Superstar","Adidas",52000,"Аяқ киім","👟","Былғары"],
+["New Balance 574","New Balance",60000,"Аяқ киім","👟","Замша және торлы мата"]
+].forEach(p=>add(p[0],p[1],p[2],p[3],p[4],"Материал",p[5]));
+
+[
+["Үстел шамы","Xiaomi",12000,"Үй заттары","💡","LED жарық"],
+["Шаңсорғыш","Samsung",85000,"Үй заттары","🧹","Қуаты 1800 Вт"],
+["Кофеқайнатқыш","Philips",55000,"Үй заттары","☕","Автоматты жүйе"],
+["Электр шәйнек","Xiaomi",18000,"Үй заттары","🫖","1.7 литр"],
+["Bluetooth колонка","JBL",45000,"Үй заттары","🔊","Сымсыз дыбыс"],
+["Төсек шамы","Xiaomi",9000,"Үй заттары","💡","LED"],
+].forEach(p=>add(p[0],p[1],p[2],p[3],p[4],"",p[5]));
+
+[
+["PlayStation 5","Sony",320000,"Ойын құрылғылары","🎮","4K ойын жүйесі"],
+["Xbox Series X","Microsoft",300000,"Ойын құрылғылары","🎮","4K ойын жүйесі"],
+["DualSense","Sony",35000,"Ойын құрылғылары","🕹️","Сымсыз геймпад"],
+["Gaming Mouse","Logitech",28000,"Ойын құрылғылары","🖱️","Ойын тінтуірі"],
+["Gaming Headset","Razer",45000,"Ойын құрылғылары","🎧","Ойын құлаққабы"]
+].forEach(p=>add(p[0],p[1],p[2],p[3],p[4],"",p[5]));
+
+[
+["Apple Watch","Apple",150000,"Гаджеттер","⌚","GPS, жүрек соғуын бақылау"],
+["Galaxy Watch","Samsung",110000,"Гаджеттер","⌚","GPS, AMOLED"],
+["Smart Watch","Xiaomi",35000,"Гаджеттер","⌚","Қадам санау, хабарламалар"],
+["Power Bank","Xiaomi",18000,"Гаджеттер","🔋","20000 mAh"],
+["Fitness Band","Xiaomi",22000,"Гаджеттер","⌚","Фитнес функциялары"]
+].forEach(p=>add(p[0],p[1],p[2],p[3],p[4],"",p[5]));
+
+let selectedCategory="Барлығы";
+
+function renderCategories(){
+document.getElementById("categories").innerHTML=categories.map(c=>`
+<div class="category ${selectedCategory===c[0]?'active':''}"
+onclick="selectCategory('${c[0]}')">
+<div>${c[1]}</div><p>${c[0]}</p>
+</div>`).join("");
+}
+
+function selectCategory(name){
+selectedCategory=name;
+document.getElementById("catalogTitle").innerText=name==="Барлығы"?"Барлық тауарлар":name;
+renderCategories();
+showProducts();
+}
+
+function showProducts(){
+let q=document.getElementById("search").value.toLowerCase();
+let sort=document.getElementById("sort").value;
+
+let list=products.filter(p=>
+(selectedCategory==="Барлығы"||p.cat===selectedCategory)&&
+(p.name+" "+p.brand).toLowerCase().includes(q)
+);
+
+if(sort==="cheap")list.sort((a,b)=>a.price-b.price);
+if(sort==="expensive")list.sort((a,b)=>b.price-a.price);
+
+document.getElementById("count").innerText="Табылған тауар саны: "+list.length;
+
+document.getElementById("products").innerHTML=list.map(p=>{
+let index=products.indexOf(p);
+return `
+<div class="card">
+<div class="product-image">${p.icon}</div>
+<div class="brand">${p.brand}</div>
+<h3>${p.name}</h3>
+<div class="price">${p.price.toLocaleString("kk-KZ")} ₸</div>
+<div class="actions">
+<button class="details-btn" onclick="details(${index})">Толығырақ</button>
+<button onclick="addCart(${index})">+ Себет</button>
+</div>
+</div>`;
+}).join("")||"<p>Тауар табылмады.</p>";
+}
+
+function details(index){
+let p=products[index];
+document.getElementById("detailContent").innerHTML=`
+<div class="product-image">${p.icon}</div>
+<h2>${p.name}</h2>
+<p><b>Бренд:</b> ${p.brand}</p>
+<p><b>Категория:</b> ${p.cat}</p>
+<p><b>Бағасы:</b> <strong style="color:#2563eb">${p.price.toLocaleString("kk-KZ")} ₸</strong></p>
+<p><b>Материалы / сипаттамасы:</b> ${p.material}</p>
+<div class="info">${p.info}</div>
+<button class="buy" onclick="addCart(${index});closeModal('detailOverlay')">Себетке қосу</button>
+`;
+document.getElementById("detailOverlay").style.display="flex";
+}
+
+function addCart(index){
+cart.push(index);
+updateCart();
+}
+
+function removeCart(i){
+cart.splice(i,1);
+updateCart();
+}
+
+function updateCart(){
+let total=0;
+document.getElementById("cartItems").innerHTML=cart.map((index,i)=>{
+let p=products[index];
+total+=p.price;
+return `<div class="cart-item">
+<span>${p.icon} ${p.name} — ${p.price.toLocaleString("kk-KZ")} ₸</span>
+<button class="remove" onclick="removeCart(${i})">✕</button>
+</div>`;
+}).join("")||"Себет әзірге бос.";
+
+document.getElementById("total").innerText="Жалпы: "+total.toLocaleString("kk-KZ")+" ₸";
+}
+
+function order(){
+if(cart.length===0){
+alert("Алдымен себетке тауар қосыңыз!");
+return;
+}
+document.getElementById("paymentOverlay").style.display="flex";
+}
+
+function closeModal(id){
+document.getElementById(id).style.display="none";
+}
+
+renderCategories();
+showProducts();
+</script>
+</body>
+</html>
